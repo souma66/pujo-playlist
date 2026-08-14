@@ -1,5 +1,5 @@
 // ===================================================================
-// PUJO PLAYLIST - Premium Mobile-Optimized Bengali Music Portal
+// PUJO PLAYLIST - Premium Bengali Durga Puja Music & Cultural Portal
 // Integrated with Official YouTube Pujo Playlist (PLJXc1t4LYwA0)
 // ===================================================================
 
@@ -13,15 +13,24 @@ import { dhakEngine } from './services/DhakAudioEngine.js';
 // Global YouTube Player instance reference
 let globalYTPlayer = null;
 
-// 1. NAVBAR COMPONENT (Mobile-Optimized Sticky Bar)
+// 1. NAVBAR COMPONENT (Refined, Less Crowded Desktop + Smooth Mobile Drawer)
 function Navbar({ currentSong, isPlaying, isDhakPlaying, onToggleDhak }) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 30);
+    const handleScroll = () => setScrolled(window.scrollY > 25);
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Close drawer on escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const navLinks = [
@@ -34,14 +43,14 @@ function Navbar({ currentSong, isPlaying, isDhakPlaying, onToggleDhak }) {
     { name: 'About', href: '#about' }
   ];
 
-  const handleMobileLinkClick = () => {
+  const handleLinkClick = () => {
     setMobileOpen(false);
   };
 
   return h('header', { className: `navbar-fixed ${scrolled ? 'navbar-scrolled' : ''}` },
     h('div', { className: 'container-custom nav-container' },
-      // Brand
-      h('a', { href: '#hero', className: 'nav-brand' },
+      // Brand Emblem & Title
+      h('a', { href: '#hero', className: 'nav-brand', 'aria-label': 'Pujo Playlist Home' },
         h('div', { className: 'nav-logo-emblem' }, h('span', null, '🪔')),
         h('div', { className: 'nav-brand-text' },
           h('span', { className: 'nav-brand-title gold-gradient-text' }, 'PUJO PLAYLIST'),
@@ -50,15 +59,21 @@ function Navbar({ currentSong, isPlaying, isDhakPlaying, onToggleDhak }) {
       ),
 
       // Desktop Nav Links
-      h('nav', { className: 'nav-links-desktop' },
+      h('nav', { className: 'nav-links-desktop', 'aria-label': 'Main Navigation' },
         navLinks.map((link) =>
-          h('a', { key: link.name, href: link.href, className: 'nav-link' }, link.name)
+          h('a', {
+            key: link.name,
+            href: link.href,
+            className: 'nav-link',
+            onClick: handleLinkClick
+          }, link.name)
         ),
         h('button', {
           onClick: onToggleDhak,
           className: `btn-secondary ${isDhakPlaying ? 'pulse-playing' : ''}`,
-          style: { padding: '0.45rem 1rem', fontSize: '0.82rem', minHeight: '38px' },
-          title: 'Toggle Traditional Live Dhak Percussion Beats'
+          style: { padding: '0.4rem 0.95rem', fontSize: '0.82rem', minHeight: '36px' },
+          title: 'Toggle Live Traditional Dhak Percussion Beats',
+          'aria-label': 'Toggle Dhak Rhythm'
         },
           h('span', null, '🥁'),
           h('span', null, isDhakPlaying ? 'ঢাক বাজছে...' : 'ঢাকের বোল')
@@ -66,42 +81,72 @@ function Navbar({ currentSong, isPlaying, isDhakPlaying, onToggleDhak }) {
       ),
 
       // Mobile Quick Controls
-      h('div', { style: { display: 'flex', alignItems: 'center', gap: '0.6rem' } },
+      h('div', { className: 'nav-mobile-actions' },
         h('button', {
           onClick: onToggleDhak,
           className: `btn-secondary ${isDhakPlaying ? 'pulse-playing' : ''}`,
-          style: { padding: '0.35rem 0.75rem', fontSize: '0.75rem', minHeight: '38px', display: 'flex' },
-          title: 'Dhak Beat'
+          style: { padding: '0.35rem 0.75rem', fontSize: '0.75rem', minHeight: '36px', display: 'flex', alignItems: 'center' },
+          title: 'Toggle Live Dhak',
+          'aria-label': 'Toggle Live Dhak'
         }, h('span', null, '🥁')),
         h('button', {
           className: 'nav-mobile-toggle',
           onClick: () => setMobileOpen(!mobileOpen),
-          'aria-label': 'Toggle navigation menu'
+          'aria-label': mobileOpen ? 'Close Menu' : 'Open Navigation Menu',
+          'aria-expanded': mobileOpen
         }, mobileOpen ? '✕' : '☰')
       )
     ),
 
-    // Mobile Drawer (Auto-closes on tap)
-    mobileOpen && h('div', { className: 'mobile-menu-drawer' },
-      navLinks.map((link) =>
-        h('a', {
-          key: link.name,
-          href: link.href,
-          className: 'nav-link',
-          onClick: handleMobileLinkClick
-        }, link.name)
+    // Mobile Navigation Drawer with Backdrop
+    mobileOpen && h('div', { className: 'mobile-drawer-backdrop', onClick: () => setMobileOpen(false) },
+      h('div', {
+        className: 'mobile-menu-drawer',
+        onClick: (e) => e.stopPropagation()
+      },
+        h('div', { className: 'mobile-drawer-header' },
+          h('div', { style: { display: 'flex', alignItems: 'center', gap: '0.5rem' } },
+            h('span', { style: { fontSize: '1.2rem' } }, '🪔'),
+            h('span', { className: 'gold-gradient-text', style: { fontFamily: 'var(--font-serif)', fontWeight: 800, fontSize: '0.95rem' } }, 'PUJO PLAYLIST')
+          ),
+          h('button', {
+            className: 'mobile-drawer-close-btn',
+            onClick: () => setMobileOpen(false),
+            'aria-label': 'Close Menu'
+          }, '✕')
+        ),
+        h('div', { className: 'mobile-drawer-links' },
+          navLinks.map((link) =>
+            h('a', {
+              key: link.name,
+              href: link.href,
+              className: 'mobile-nav-link',
+              onClick: handleLinkClick
+            }, link.name)
+          )
+        ),
+        h('div', { style: { paddingTop: '1rem', borderTop: '1px solid rgba(212, 175, 55, 0.15)' } },
+          h('button', {
+            onClick: () => { onToggleDhak(); setMobileOpen(false); },
+            className: `btn-primary ${isDhakPlaying ? 'pulse-playing' : ''}`,
+            style: { width: '100%', fontSize: '0.88rem' }
+          },
+            h('span', null, '🥁'),
+            h('span', null, isDhakPlaying ? 'ঢাক বন্ধ করুন (Stop Dhak)' : 'ঢাকের বোল শুনুন (Play Live Dhak)')
+          )
+        )
       )
     )
   );
 }
 
-// 2. HERO COMPONENT (Mobile-Framed)
+// 2. HERO COMPONENT (Cinematic Visibility, Refined Spacing, Natural Bengali Copy)
 function Hero({ onPlayPlaylist, onExploreSongs, isPlaying }) {
   return h('section', { id: 'hero', className: 'hero-section' },
     h('div', { className: 'hero-background-wrapper' },
       h('img', {
         src: '/images/hero.jpg',
-        alt: 'Durga Puja Bengali Celebration',
+        alt: 'Durga Puja Bengali Celebration Idol',
         className: 'hero-bg-image',
         fetchPriority: 'high'
       }),
@@ -111,37 +156,37 @@ function Hero({ onPlayPlaylist, onExploreSongs, isPlaying }) {
     h('div', { className: 'hero-content' },
       h('div', { className: 'hero-tagline-badge' },
         h('span', null, '🪔'),
-        h('span', null, 'আশ্বিনের শারদোৎসব • শারদ সুরের আসর')
+        h('span', null, 'আশ্বিনের শারদোৎসব • চিরন্তন শারদ সুর')
       ),
       h('h1', { className: 'hero-main-title gold-gradient-text' }, 'PUJO PLAYLIST'),
       h('h2', { className: 'hero-subtitle-bengali' }, 'শারদীয়ার সুরে, পুজোর গল্পে'),
       h('p', { className: 'hero-description font-bengali-sans' },
-        'মহালয়ার ভোর থেকে দশমীর সিঁদুরখেলা—প্রতিটি মুহূর্তের সঙ্গী এক চিরন্তন সুর। আশ্বিনের নীল আকাশ ও ঢাকের গম্ভীর ধ্বনিতে ফিরে আসুক আপনার প্রিয় শৈশবের সোনালী পুজো।'
+        'মহালয়ার পুণ্য প্রভাত থেকে বিজয়ার সিঁদুরখেলা—শরতের প্রতিটি পল জড়িয়ে থাকে এক চিরন্তন সুরের মায়ায়। আশ্বিনের শিউলিভেজা সকাল, কাশফুলের দোলা আর ঢাকের গম্ভীর বোলে ফিরে আসুক আপনার প্রিয় শৈশবের অমলিন শারদ স্মৃতি।'
       ),
 
       h('div', { className: 'hero-actions' },
         h('button', {
           onClick: onPlayPlaylist,
-          className: 'btn-primary',
+          className: 'btn-primary hero-btn-play',
           id: 'hero-play-playlist-btn'
         },
-          h('span', null, isPlaying ? '⏸' : '▶'),
+          h('span', { className: 'btn-icon' }, isPlaying ? '⏸' : '▶'),
           h('span', null, isPlaying ? 'Pause Playlist' : 'Play Pujo Playlist')
         ),
         h('a', {
           href: '#playlist',
           onClick: onExploreSongs,
-          className: 'btn-secondary',
+          className: 'btn-secondary hero-btn-explore',
           id: 'hero-explore-songs-btn'
         },
-          h('span', null, '🎶'),
+          h('span', { className: 'btn-icon' }, '🎶'),
           h('span', null, 'Browse All Songs')
         )
       ),
 
-      // Animated Waveform
-      h('div', { className: 'waveform-container', title: 'Dhak Audio Waveform' },
-        Array.from({ length: 10 }).map((_, i) =>
+      // Animated Waveform Indicator
+      h('div', { className: 'waveform-container', title: 'Festive Soundwave Indicator' },
+        Array.from({ length: 12 }).map((_, i) =>
           h('div', { key: i, className: `waveform-bar ${isPlaying ? '' : 'paused'}` })
         )
       )
@@ -158,7 +203,7 @@ const YouTubePlayerFrame = memo(function YouTubePlayerFrame() {
 
 // 4. CINEMATIC YOUTUBE STAGE COMPONENT
 function YouTubeStage({ currentSong, isPlaying, onTogglePlay, onNext, onPrev }) {
-  return h('section', { id: 'stage', style: { padding: '4.5rem 0 2rem' } },
+  return h('section', { id: 'stage', className: 'section-padded' },
     h('div', { className: 'container-custom' },
       h('div', { className: 'section-header' },
         h('div', { className: 'section-badge' },
@@ -166,7 +211,7 @@ function YouTubeStage({ currentSong, isPlaying, onTogglePlay, onNext, onPrev }) 
           h('span', null, 'শারদ সুরমঞ্চ • YouTube Pujo Player')
         ),
         h('h2', { className: 'section-title' }, 'Cinematic Pujo Stage'),
-        h('p', { className: 'section-subtitle-bengali' }, 'অফিশিয়াল ইউটিউব প্লেলিস্ট ও লাইভ স্ট্রিমিং'),
+        h('p', { className: 'section-subtitle-bengali' }, 'অফিশিয়াল ইউটিউব প্লেলিস্ট ও লাইভ অডিও স্ট্রিমিং'),
         h('div', { className: 'ornament-divider' }, h('span', null, '🪔'))
       ),
 
@@ -175,7 +220,7 @@ function YouTubeStage({ currentSong, isPlaying, onTogglePlay, onNext, onPrev }) 
           // Video Frame
           h(YouTubePlayerFrame),
 
-          // Metadata & Controls
+          // Metadata & Interactive Stage Controls
           h('div', { className: 'yt-stage-meta' },
             h('div', { className: 'yt-live-indicator' },
               h('div', { className: `yt-live-dot ${isPlaying ? 'active' : ''}` }),
@@ -184,12 +229,10 @@ function YouTubeStage({ currentSong, isPlaying, onTogglePlay, onNext, onPrev }) 
 
             h('h3', { className: 'yt-stage-title' }, currentSong.bengaliTitle),
             h('p', { className: 'yt-stage-artist' }, currentSong.bengaliArtist || currentSong.artist),
-            h('p', { style: { fontFamily: 'var(--font-bengali-sans)', fontSize: '0.88rem', color: 'var(--cream-soft)', lineHeight: '1.6' } },
-              currentSong.subtitle
-            ),
+            h('p', { className: 'yt-stage-subtitle' }, currentSong.subtitle),
 
             currentSong.lyricsExcerpt && h('div', { className: 'about-quote-box', style: { marginTop: '0.4rem', paddingLeft: '0.85rem' } },
-              h('p', { style: { fontStyle: 'italic', fontSize: '0.84rem', color: 'var(--gold-light)' } },
+              h('p', { style: { fontStyle: 'italic', fontSize: '0.86rem', color: 'var(--gold-light)' } },
                 `"${currentSong.lyricsExcerpt}"`
               )
             ),
@@ -232,18 +275,21 @@ function YouTubeStage({ currentSong, isPlaying, onTogglePlay, onNext, onPrev }) 
   );
 }
 
-// 5. PLAYLIST SECTION COMPONENT (Mobile-Friendly List Rows)
+// 5. PLAYLIST SECTION COMPONENT (Prominent Cards with Search & Equalizer)
 function PlaylistSection({ songs, currentSong, isPlaying, onSelectSong }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredSongs = songs.filter((song) => {
-    return song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.bengaliTitle.includes(searchQuery) ||
-      song.artist.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      song.bengaliArtist.includes(searchQuery);
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return song.title.toLowerCase().includes(q) ||
+      song.bengaliTitle.includes(q) ||
+      song.artist.toLowerCase().includes(q) ||
+      song.bengaliArtist.includes(q) ||
+      (song.tag && song.tag.includes(q));
   });
 
-  return h('section', { id: 'playlist', style: { padding: '2.5rem 0 5.5rem' } },
+  return h('section', { id: 'playlist', className: 'section-padded' },
     h('div', { className: 'container-custom' },
       h('div', { className: 'section-header' },
         h('div', { className: 'section-badge' },
@@ -261,26 +307,16 @@ function PlaylistSection({ songs, currentSong, isPlaying, onSelectSong }) {
             h('span', { className: 'playlist-count-badge' }, `${filteredSongs.length} Tracks`),
             h('span', { style: { fontSize: '0.78rem', color: 'var(--text-secondary)' } }, 'Playlist ID: PLJXc1t4LYwA0')
           ),
-          h('div', { style: { position: 'relative', width: '100%', maxWidth: '320px' } },
+          h('div', { className: 'playlist-search-wrap' },
             h('input', {
               type: 'text',
               placeholder: 'গান বা শিল্পীর নাম খুঁজুন...',
               value: searchQuery,
               onChange: (e) => setSearchQuery(e.target.value),
-              style: {
-                width: '100%',
-                padding: '0.6rem 1rem 0.6rem 2.4rem',
-                borderRadius: 'var(--radius-full)',
-                background: 'rgba(7, 5, 7, 0.85)',
-                border: '1px solid var(--gold-border)',
-                color: '#fff',
-                fontSize: '0.88rem',
-                outline: 'none',
-                minHeight: '44px',
-                fontFamily: 'var(--font-bengali-sans)'
-              }
+              className: 'playlist-search-input',
+              'aria-label': 'Search songs by title or artist'
             }),
-            h('span', { style: { position: 'absolute', left: '0.9rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--gold-radiant)' } }, '🔍')
+            h('span', { className: 'playlist-search-icon' }, '🔍')
           )
         ),
 
@@ -292,7 +328,10 @@ function PlaylistSection({ songs, currentSong, isPlaying, onSelectSong }) {
             return h('div', {
               key: song.id,
               className: `playlist-item ${isThisSong ? 'active' : ''}`,
-              onClick: () => onSelectSong(song)
+              onClick: () => onSelectSong(song),
+              role: 'button',
+              tabIndex: 0,
+              'aria-label': `Play ${song.bengaliTitle}`
             },
               h('div', { className: 'playlist-item-index' },
                 isThisPlaying ? h('div', { className: 'eq-bars' },
@@ -301,24 +340,27 @@ function PlaylistSection({ songs, currentSong, isPlaying, onSelectSong }) {
                   h('div', { className: 'eq-bar' })
                 ) : h('span', null, String(index + 1).padStart(2, '0'))
               ),
-              h('img', {
-                src: song.cover,
-                alt: song.title,
-                className: 'playlist-item-thumb',
-                loading: 'lazy'
-              }),
+              h('div', { className: 'playlist-thumb-wrap' },
+                h('img', {
+                  src: song.cover,
+                  alt: song.title,
+                  className: 'playlist-item-thumb',
+                  loading: 'lazy'
+                }),
+                isThisPlaying && h('div', { className: 'playlist-thumb-overlay' }, h('span', null, '▶'))
+              ),
               h('div', { className: 'playlist-item-info' },
                 h('span', { className: 'playlist-item-title' }, song.bengaliTitle),
                 h('span', { className: 'playlist-item-artist' }, song.bengaliArtist || song.artist)
               ),
               h('div', { className: 'playlist-item-tag' }, song.tag),
-              h('div', { style: { display: 'flex', alignItems: 'center', justifyContent: 'flex-end' } },
+              h('div', { className: 'playlist-item-right' },
                 h('span', { className: 'playlist-item-duration' }, song.duration || 'Full Audio'),
                 h('button', {
-                  className: 'player-ctrl-btn',
+                  className: 'playlist-row-play-btn',
                   onClick: (e) => { e.stopPropagation(); onSelectSong(song); },
-                  style: { color: isThisSong ? 'var(--gold-primary)' : 'inherit' },
-                  title: isThisPlaying ? 'Pause' : 'Play Track'
+                  title: isThisPlaying ? 'Pause' : 'Play Track',
+                  'aria-label': isThisPlaying ? 'Pause' : 'Play'
                 }, isThisPlaying ? '⏸' : '▶')
               )
             );
@@ -329,11 +371,11 @@ function PlaylistSection({ songs, currentSong, isPlaying, onSelectSong }) {
   );
 }
 
-// 6. FEATURED SONGS COMPONENT
+// 6. FEATURED SONGS COMPONENT (Rich Prominent Cards with Hover Zoom)
 function FeaturedSongs({ songs, currentSong, isPlaying, onSelectSong }) {
   const featuredList = songs.filter((s) => s.featured);
 
-  return h('section', { id: 'featured', style: { padding: '4.5rem 0' } },
+  return h('section', { id: 'featured', className: 'section-padded' },
     h('div', { className: 'container-custom' },
       h('div', { className: 'section-header' },
         h('div', { className: 'section-badge' },
@@ -341,7 +383,7 @@ function FeaturedSongs({ songs, currentSong, isPlaying, onSelectSong }) {
           h('span', null, 'শারদ স্মারক • Featured Puja Gems')
         ),
         h('h2', { className: 'section-title' }, 'Featured Puja Tracks'),
-        h('p', { className: 'section-subtitle-bengali' }, 'প্লেলিস্টের সেরা ও চিরসবুজ গানসমূহ'),
+        h('p', { className: 'section-subtitle-bengali' }, 'প্লেলিস্টের সেরা ও চিরসবুজ শারদীয় গান'),
         h('div', { className: 'ornament-divider' }, h('span', null, '🪔'))
       ),
 
@@ -353,7 +395,9 @@ function FeaturedSongs({ songs, currentSong, isPlaying, onSelectSong }) {
           return h('div', {
             key: song.id,
             className: `featured-card ${isThisActive ? 'pulse-playing' : ''}`,
-            onClick: () => onSelectSong(song)
+            onClick: () => onSelectSong(song),
+            role: 'button',
+            tabIndex: 0
           },
             h('div', { className: 'featured-card-thumb-wrap' },
               h('img', {
@@ -382,7 +426,7 @@ function FeaturedSongs({ songs, currentSong, isPlaying, onSelectSong }) {
   );
 }
 
-// 7. PUJO GALLERY COMPONENT
+// 7. PUJO GALLERY COMPONENT (Cinematic Bento Grid with Lightbox)
 function PujoGallery() {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
 
@@ -394,7 +438,7 @@ function PujoGallery() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  return h('section', { id: 'gallery', style: { padding: '4.5rem 0' } },
+  return h('section', { id: 'gallery', className: 'section-padded' },
     h('div', { className: 'container-custom' },
       h('div', { className: 'section-header' },
         h('div', { className: 'section-badge' },
@@ -402,7 +446,7 @@ function PujoGallery() {
           h('span', null, 'শারদ চিত্রপট • Cinematic Visuals')
         ),
         h('h2', { className: 'section-title' }, 'Pujo Gallery'),
-        h('p', { className: 'section-subtitle-bengali' }, 'চোখের আলোয় মায়ের দর্শন ও শারদোৎসবের নানা রঙ'),
+        h('p', { className: 'section-subtitle-bengali' }, 'চোখের আলোয় মায়ের দর্শন ও শারদোৎসবের আনন্দময় মুহূর্ত'),
         h('div', { className: 'ornament-divider' }, h('span', null, '🪔'))
       ),
 
@@ -411,12 +455,16 @@ function PujoGallery() {
           h('div', {
             key: item.id,
             className: `gallery-card ${item.span}`,
-            onClick: () => setSelectedPhoto(item)
+            onClick: () => setSelectedPhoto(item),
+            role: 'button',
+            tabIndex: 0,
+            'aria-label': `View photo: ${item.title}`
           },
             h('img', {
               src: item.image,
               alt: item.title,
               className: 'gallery-image',
+              style: { objectPosition: item.position || 'center center' },
               loading: 'lazy'
             }),
             h('div', { className: 'gallery-card-overlay' },
@@ -429,6 +477,7 @@ function PujoGallery() {
       )
     ),
 
+    // Lightbox Modal
     selectedPhoto && h('div', {
       className: 'lightbox-modal-backdrop',
       onClick: () => setSelectedPhoto(null)
@@ -443,7 +492,12 @@ function PujoGallery() {
           'aria-label': 'Close image modal'
         }, '✕'),
         h('div', { className: 'lightbox-image-wrap' },
-          h('img', { src: selectedPhoto.image, alt: selectedPhoto.title, className: 'lightbox-image' })
+          h('img', {
+            src: selectedPhoto.image,
+            alt: selectedPhoto.title,
+            className: 'lightbox-image',
+            style: { objectPosition: selectedPhoto.position || 'center center' }
+          })
         ),
         h('div', { className: 'lightbox-details' },
           h('span', { className: 'gallery-card-badge', style: { marginBottom: '0.4rem' } }, selectedPhoto.tag),
@@ -456,9 +510,9 @@ function PujoGallery() {
   );
 }
 
-// 8. PUJO EXPERIENCE COMPONENT
+// 8. PUJO EXPERIENCE COMPONENT (Emotional, Immersive Cultural Cards)
 function PujoExperience({ isDhakPlaying, onToggleDhak }) {
-  return h('section', { id: 'experience', style: { padding: '4.5rem 0' } },
+  return h('section', { id: 'experience', className: 'section-padded' },
     h('div', { className: 'container-custom' },
       h('div', { className: 'section-header' },
         h('div', { className: 'section-badge' },
@@ -480,7 +534,8 @@ function PujoExperience({ isDhakPlaying, onToggleDhak }) {
             h('p', { className: 'experience-detail' }, exp.detail),
             exp.hasSoundTrigger && h('button', {
               onClick: onToggleDhak,
-              className: `dhak-interactive-btn ${isDhakPlaying ? 'pulse-playing' : ''}`
+              className: `dhak-interactive-btn ${isDhakPlaying ? 'pulse-playing' : ''}`,
+              'aria-label': 'Toggle live dhak beat'
             },
               h('span', null, '🥁'),
               h('span', null, isDhakPlaying ? 'ঢাক বন্ধ করুন (Stop Dhak)' : 'ঢাকের তাল শুনুন (Play Live Dhak)')
@@ -492,9 +547,9 @@ function PujoExperience({ isDhakPlaying, onToggleDhak }) {
   );
 }
 
-// 9. ABOUT COMPONENT
+// 9. ABOUT COMPONENT (Nostalgic Heritage & Soul)
 function AboutSection() {
-  return h('section', { id: 'about', style: { padding: '4.5rem 0' } },
+  return h('section', { id: 'about', className: 'section-padded' },
     h('div', { className: 'container-custom' },
       h('div', { className: 'section-header' },
         h('div', { className: 'section-badge' },
@@ -575,7 +630,7 @@ function Footer() {
   );
 }
 
-// 11. PERSISTENT MOBILE BOTTOM MUSIC PLAYER
+// 11. SLIM, ELEGANT BOTTOM MUSIC PLAYER BAR (Desktop + Mobile)
 function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, onPrev }) {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -598,7 +653,7 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
             if (dur > 0 && dur !== duration) setDuration(dur);
           } catch (e) {}
         }
-      }, 500);
+      }, 400);
     } else {
       if (progressTimerRef.current) clearInterval(progressTimerRef.current);
     }
@@ -628,7 +683,7 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
     if (!globalYTPlayer) return;
     if (isMuted) {
       globalYTPlayer.unMute();
-      globalYTPlayer.setVolume(volume || 70);
+      globalYTPlayer.setVolume(volume || 75);
       setIsMuted(false);
     } else {
       globalYTPlayer.mute();
@@ -646,34 +701,23 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
   if (!currentSong) return null;
 
   return h(Fragment, null,
-    h('aside', { className: 'player-bar-container', 'aria-label': 'Mobile Audio Player Bar' },
-      // Progress Scrubber Bar on Mobile Top Edge
-      h('div', {
-        style: {
-          width: '100%',
-          height: '3px',
-          background: 'rgba(255, 255, 255, 0.15)',
-          position: 'relative',
-          marginBottom: '0.45rem',
-          borderRadius: '2px',
-          overflow: 'hidden'
-        }
-      },
+    h('aside', { className: 'player-bar-container', 'aria-label': 'Bottom Audio Player Bar' },
+      // Slim Top Progress Scrubber Bar on Mobile
+      h('div', { className: 'player-mobile-progress-bar' },
         h('div', {
+          className: 'player-mobile-progress-fill',
           style: {
-            height: '100%',
-            width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`,
-            background: 'linear-gradient(90deg, var(--gold-dark), var(--gold-primary))',
-            transition: 'width 0.2s linear'
+            width: `${duration > 0 ? (currentTime / duration) * 100 : 0}%`
           }
         })
       ),
 
       h('div', { className: 'player-bar-grid' },
-        // Left: Thumbnail + Title
+        // Left Track Info
         h('div', {
           className: 'player-track-info',
           onClick: () => setIsCinemaMode(true),
+          title: 'Open Cinema Visualizer',
           style: { cursor: 'pointer' }
         },
           h('img', { src: currentSong.cover, alt: currentSong.title, className: 'player-track-thumb' }),
@@ -683,25 +727,28 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
           )
         ),
 
-        // Center / Right Controls
+        // Center / Main Controls
         h('div', { className: 'player-center-controls' },
           h('div', { className: 'player-button-row' },
             h('button', {
               className: `player-ctrl-btn ${isShuffle ? 'active' : ''}`,
               onClick: () => setIsShuffle(!isShuffle),
-              title: 'Shuffle'
+              title: 'Shuffle Tracks',
+              'aria-label': 'Shuffle'
             }, '🔀'),
-            h('button', { className: 'player-ctrl-btn', onClick: onPrev, title: 'Previous Song' }, '⏮'),
+            h('button', { className: 'player-ctrl-btn', onClick: onPrev, title: 'Previous Song', 'aria-label': 'Previous' }, '⏮'),
             h('button', {
               className: 'player-main-play-btn',
               onClick: isPlaying ? onPause : onPlay,
-              title: isPlaying ? 'Pause' : 'Play'
+              title: isPlaying ? 'Pause' : 'Play',
+              'aria-label': isPlaying ? 'Pause' : 'Play'
             }, isPlaying ? '⏸' : '▶'),
-            h('button', { className: 'player-ctrl-btn', onClick: onNext, title: 'Next Song' }, '⏭'),
+            h('button', { className: 'player-ctrl-btn', onClick: onNext, title: 'Next Song', 'aria-label': 'Next' }, '⏭'),
             h('button', {
               className: `player-ctrl-btn ${isRepeat ? 'active' : ''}`,
               onClick: () => setIsRepeat(!isRepeat),
-              title: 'Repeat'
+              title: 'Repeat Track',
+              'aria-label': 'Repeat'
             }, '🔁')
           ),
           h('div', { className: 'player-timeline-row' },
@@ -712,7 +759,8 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
               max: duration || 100,
               value: currentTime,
               onChange: handleSeek,
-              className: 'player-slider'
+              className: 'player-slider',
+              'aria-label': 'Seek track progress'
             }),
             h('span', { className: 'player-time-label' },
               formatTime(duration) !== '0:00' ? formatTime(duration) : currentSong.duration
@@ -720,9 +768,9 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
           )
         ),
 
-        // Right (Desktop Volume)
+        // Right Volume & Cinema Mode Controls (Desktop)
         h('div', { className: 'player-right-controls' },
-          h('button', { className: 'player-ctrl-btn', onClick: toggleMute, title: isMuted ? 'Unmute' : 'Mute' },
+          h('button', { className: 'player-ctrl-btn', onClick: toggleMute, title: isMuted ? 'Unmute' : 'Mute', 'aria-label': 'Mute' },
             isMuted ? '🔇' : volume > 50 ? '🔊' : '🔉'
           ),
           h('div', { className: 'volume-slider-wrap' },
@@ -732,20 +780,22 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
               max: '100',
               value: isMuted ? 0 : volume,
               onChange: handleVolumeChange,
-              className: 'player-slider'
+              className: 'player-slider',
+              'aria-label': 'Volume control'
             })
           ),
           h('button', {
             className: 'player-ctrl-btn',
             onClick: () => setIsCinemaMode(true),
             title: 'Full Cinema Visualizer',
+            'aria-label': 'Cinema Visualizer',
             style: { color: 'var(--gold-primary)' }
           }, '⛶')
         )
       )
     ),
 
-    // Full Cinema Modal for Mobile Portrait
+    // Full Cinema Modal for Immersive Visualizer
     isCinemaMode && h('div', {
       className: 'lightbox-modal-backdrop',
       onClick: () => setIsCinemaMode(false)
@@ -753,10 +803,10 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
       h('div', {
         className: 'lightbox-modal-content',
         onClick: (e) => e.stopPropagation(),
-        style: { maxWidth: '580px', padding: '2rem 1.4rem', textAlign: 'center' }
+        style: { maxWidth: '560px', padding: '2rem 1.5rem', textAlign: 'center' }
       },
-        h('button', { className: 'lightbox-close-btn', onClick: () => setIsCinemaMode(false) }, '✕'),
-        h('div', { style: { position: 'relative', width: '180px', height: '180px', margin: '0 auto 1.4rem' } },
+        h('button', { className: 'lightbox-close-btn', onClick: () => setIsCinemaMode(false), 'aria-label': 'Close' }, '✕'),
+        h('div', { style: { position: 'relative', width: '190px', height: '190px', margin: '0 auto 1.4rem' } },
           h('img', {
             src: currentSong.cover,
             alt: currentSong.title,
@@ -766,7 +816,7 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
               objectFit: 'cover',
               borderRadius: 'var(--radius-md)',
               border: '2px solid var(--gold-primary)',
-              boxShadow: '0 0 28px rgba(212, 175, 55, 0.4)'
+              boxShadow: '0 0 30px rgba(212, 175, 55, 0.45)'
             }
           })
         ),
@@ -774,7 +824,7 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
         h('h3', { style: { fontFamily: 'var(--font-bengali-serif)', fontSize: '1.4rem', color: 'var(--cream-pure)', marginBottom: '0.3rem' } }, currentSong.bengaliTitle),
         h('p', { style: { fontSize: '0.9rem', color: 'var(--gold-radiant)', marginBottom: '1.2rem' } }, currentSong.bengaliArtist || currentSong.artist),
         h('div', { className: 'waveform-container', style: { marginBottom: '1.2rem' } },
-          Array.from({ length: 10 }).map((_, i) => h('div', { key: i, className: `waveform-bar ${isPlaying ? '' : 'paused'}` }))
+          Array.from({ length: 12 }).map((_, i) => h('div', { key: i, className: `waveform-bar ${isPlaying ? '' : 'paused'}` }))
         ),
         h('div', { className: 'player-timeline-row', style: { display: 'flex', margin: '0 auto 1.2rem', width: '100%' } },
           h('span', { className: 'player-time-label' }, formatTime(currentTime)),
@@ -784,7 +834,8 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
             max: duration || 100,
             value: currentTime,
             onChange: handleSeek,
-            className: 'player-slider'
+            className: 'player-slider',
+            'aria-label': 'Seek'
           }),
           h('span', { className: 'player-time-label' },
             formatTime(duration) !== '0:00' ? formatTime(duration) : currentSong.duration
@@ -804,7 +855,7 @@ function MusicPlayer({ songs, currentSong, isPlaying, onPlay, onPause, onNext, o
   );
 }
 
-// 12. AMBIENT PARTICLES (Optimized for Mobile Battery & Frame Rate)
+// 12. AMBIENT PARTICLES (Optimized for Mobile Battery & Smooth 60fps)
 function AmbientParticles() {
   const canvasRef = useRef(null);
 
@@ -823,17 +874,17 @@ function AmbientParticles() {
     };
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Lower particle count on mobile for smooth 60fps and low battery drain
+    // Battery-efficient particle count
     const isMobile = window.innerWidth < 768;
-    const count = isMobile ? 18 : 34;
+    const count = isMobile ? 16 : 30;
     const particles = [];
     for (let i = 0; i < count; i++) {
       particles.push({
         x: Math.random() * width,
         y: Math.random() * height,
         radius: Math.random() * 2 + 0.8,
-        vx: (Math.random() - 0.5) * 0.35,
-        vy: -Math.random() * 0.4 - 0.15,
+        vx: (Math.random() - 0.5) * 0.3,
+        vy: -Math.random() * 0.35 - 0.1,
         alpha: Math.random() * 0.5 + 0.2,
         pulseSpeed: Math.random() * 0.02 + 0.008,
         color: Math.random() > 0.35 ? '212, 175, 55' : Math.random() > 0.5 ? '245, 120, 90' : '255, 240, 210'
@@ -1101,3 +1152,4 @@ if (rootEl) {
   const root = ReactDOM.createRoot(rootEl);
   root.render(h(App));
 }
+

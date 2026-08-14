@@ -3,12 +3,13 @@ import React from 'https://esm.sh/react@18.2.0';
 export function Hero({ onPlayPlaylist, onExploreSongs, isPlaying }) {
   return (
     <section id="hero" className="hero-section">
-      {/* Cinematic Fullscreen Background Image */}
+      {/* Cinematic Background Image with tuned visibility */}
       <div className="hero-background-wrapper">
         <img
           src="/images/hero.jpg"
-          alt="Durga Puja Bengali Celebration"
+          alt="Durga Puja Bengali Celebration Idol"
           className="hero-bg-image"
+          fetchPriority="high"
         />
         <div className="hero-overlay"></div>
       </div>
@@ -18,7 +19,7 @@ export function Hero({ onPlayPlaylist, onExploreSongs, isPlaying }) {
         {/* Festive Badge */}
         <div className="hero-tagline-badge">
           <span>🪔</span>
-          <span>শারদোৎসব ২০২৬ • সুরের মহা-আয়োজন</span>
+          <span>আশ্বিনের শারদোৎসব • চিরন্তন শারদ সুর</span>
         </div>
 
         {/* Main Title */}
@@ -31,36 +32,37 @@ export function Hero({ onPlayPlaylist, onExploreSongs, isPlaying }) {
           শারদীয়ার সুরে, পুজোর গল্পে
         </h2>
 
-        {/* Poetic Description */}
+        {/* Poetic Bengali Description */}
         <p className="hero-description font-bengali-sans">
-          মহালয়ার ভোর থেকে দশমীর সিঁদুরখেলা—প্রতিটি মুহূর্তের সঙ্গী এক চিরন্তন সুর।
-          আসুন পুজোর নস্টালজিয়া, ঢাকের আওয়াজ আর প্রিয় বাংলা গানের মোহময়ী জগতে।
+          মহালয়ার পুণ্য প্রভাত থেকে বিজয়ার সিঁদুরখেলা—শরতের প্রতিটি পল জড়িয়ে থাকে এক চিরন্তন সুরের মায়ায়। আশ্বিনের শিউলিভেজা সকাল, কাশফুলের দোলা আর ঢাকের গম্ভীর বোলে ফিরে আসুক আপনার প্রিয় শৈশবের অমলিন শারদ স্মৃতি।
         </p>
 
         {/* Action Buttons */}
         <div className="hero-actions">
           <button
             onClick={onPlayPlaylist}
-            className="btn-primary"
+            className="btn-primary hero-btn-play"
             id="hero-play-playlist-btn"
           >
-            <span>{isPlaying ? '⏸' : '▶'}</span>
-            <span>{isPlaying ? 'Pause Playlist' : 'Play Playlist'}</span>
+            <span className="btn-icon">{isPlaying ? '⏸' : '▶'}</span>
+            <span>{isPlaying ? 'Pause Playlist' : 'Play Pujo Playlist'}</span>
           </button>
 
           <a
             href="#playlist"
             onClick={onExploreSongs}
-            className="btn-secondary"
+            className="btn-secondary hero-btn-explore"
             id="hero-explore-songs-btn"
           >
-            <span>🎶</span>
-            <span>Explore Songs</span>
+            <span className="btn-icon">🎶</span>
+            <span>Browse All Songs</span>
           </a>
         </div>
 
         {/* Subtle Animated Music Waveform */}
-        <div className="waveform-container" title="Audio Waveform Visualizer">
+        <div className="waveform-container" title="Festive Soundwave Indicator">
+          <div className="waveform-bar"></div>
+          <div className="waveform-bar"></div>
           <div className="waveform-bar"></div>
           <div className="waveform-bar"></div>
           <div className="waveform-bar"></div>
@@ -76,3 +78,4 @@ export function Hero({ onPlayPlaylist, onExploreSongs, isPlaying }) {
     </section>
   );
 }
+

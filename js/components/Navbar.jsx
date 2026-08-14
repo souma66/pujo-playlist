@@ -6,16 +6,25 @@ export function Navbar({ currentSong, isPlaying, onTogglePlay, isDhakPlaying, on
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 40);
+      setScrolled(window.scrollY > 25);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') setMobileOpen(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   const navLinks = [
     { name: 'Home', href: '#hero' },
-    { name: 'Featured', href: '#featured' },
+    { name: 'YouTube Stage', href: '#stage' },
     { name: 'Playlist', href: '#playlist' },
+    { name: 'Featured', href: '#featured' },
     { name: 'Gallery', href: '#gallery' },
     { name: 'Pujo Experience', href: '#experience' },
     { name: 'About', href: '#about' }
@@ -25,7 +34,7 @@ export function Navbar({ currentSong, isPlaying, onTogglePlay, isDhakPlaying, on
     <header className={`navbar-fixed ${scrolled ? 'navbar-scrolled' : ''}`}>
       <div className="container-custom nav-container">
         {/* Brand Logo */}
-        <a href="#hero" className="nav-brand">
+        <a href="#hero" className="nav-brand" aria-label="Pujo Playlist Home">
           <div className="nav-logo-emblem">
             <span>🪔</span>
           </div>
@@ -36,7 +45,7 @@ export function Navbar({ currentSong, isPlaying, onTogglePlay, isDhakPlaying, on
         </a>
 
         {/* Desktop Navigation Links */}
-        <nav className="nav-links-desktop">
+        <nav className="nav-links-desktop" aria-label="Main Navigation">
           {navLinks.map((link) => (
             <a key={link.name} href={link.href} className="nav-link">
               {link.name}
@@ -47,21 +56,23 @@ export function Navbar({ currentSong, isPlaying, onTogglePlay, isDhakPlaying, on
           <button
             onClick={onToggleDhak}
             className={`btn-secondary ${isDhakPlaying ? 'pulse-playing' : ''}`}
-            style={{ padding: '0.45rem 1rem', fontSize: '0.82rem' }}
-            title="Toggle Live Dhak Percussion Beats"
+            style={{ padding: '0.4rem 0.95rem', fontSize: '0.82rem', minHeight: '36px' }}
+            title="Toggle Traditional Live Dhak Percussion Beats"
+            aria-label="Toggle Dhak Rhythm"
           >
             <span>🥁</span>
             <span>{isDhakPlaying ? 'ঢাক বাজছে...' : 'ঢাকের বোল'}</span>
           </button>
         </nav>
 
-        {/* Mobile Hamburger Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+        {/* Mobile Quick Controls */}
+        <div className="nav-mobile-actions">
           <button
             onClick={onToggleDhak}
             className={`btn-secondary ${isDhakPlaying ? 'pulse-playing' : ''}`}
-            style={{ padding: '0.4rem 0.8rem', fontSize: '0.75rem', display: 'flex' }}
+            style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', minHeight: '36px', display: 'flex', alignItems: 'center' }}
             title="Dhak Beat"
+            aria-label="Toggle Live Dhak"
           >
             <span>🥁</span>
           </button>
@@ -69,29 +80,57 @@ export function Navbar({ currentSong, isPlaying, onTogglePlay, isDhakPlaying, on
           <button
             className="nav-mobile-toggle"
             onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle navigation menu"
+            aria-label={mobileOpen ? "Close Menu" : "Open Navigation Menu"}
+            aria-expanded={mobileOpen}
           >
             {mobileOpen ? '✕' : '☰'}
           </button>
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* Mobile Menu Drawer with Backdrop */}
       {mobileOpen && (
-        <div className="mobile-menu-drawer">
-          {navLinks.map((link) => (
-            <a
-              key={link.name}
-              href={link.href}
-              className="nav-link"
-              onClick={() => setMobileOpen(false)}
-              style={{ fontSize: '1.05rem', padding: '0.5rem 0' }}
-            >
-              {link.name}
-            </a>
-          ))}
+        <div className="mobile-drawer-backdrop" onClick={() => setMobileOpen(false)}>
+          <div className="mobile-menu-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="mobile-drawer-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.2rem' }}>🪔</span>
+                <span className="gold-gradient-text" style={{ fontFamily: 'var(--font-serif)', fontWeight: 800, fontSize: '0.95rem' }}>PUJO PLAYLIST</span>
+              </div>
+              <button
+                className="mobile-drawer-close-btn"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Close Menu"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="mobile-drawer-links">
+              {navLinks.map((link) => (
+                <a
+                  key={link.name}
+                  href={link.href}
+                  className="mobile-nav-link"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.name}
+                </a>
+              ))}
+            </div>
+            <div style={{ paddingTop: '1rem', borderTop: '1px solid rgba(212, 175, 55, 0.15)' }}>
+              <button
+                onClick={() => { onToggleDhak(); setMobileOpen(false); }}
+                className={`btn-primary ${isDhakPlaying ? 'pulse-playing' : ''}`}
+                style={{ width: '100%', fontSize: '0.88rem' }}
+              >
+                <span>🥁</span>
+                <span>{isDhakPlaying ? 'ঢাক বন্ধ করুন (Stop Dhak)' : 'ঢাকের বোল শুনুন (Play Live Dhak)'}</span>
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </header>
   );
 }
+
